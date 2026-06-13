@@ -3,7 +3,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, SignOutButton } from "@clerk/nextjs";
 
 async function getAdminData(clerkId: string) {
   const [
@@ -136,14 +136,23 @@ export default async function AdminPage() {
           ))}
         </nav>
 
-        <div className="px-4 py-3 border-t border-zinc-200 dark:border-zinc-800 flex items-center gap-2.5">
-          <UserButton />
-          <div>
-            <p className="text-[13px] font-medium text-zinc-800 dark:text-zinc-200">
-              {dbUser.name ?? "Admin"}
-            </p>
-            <p className="text-[11px] text-zinc-400">Administrator</p>
+        {/* Sidebar footer */}
+        <div className="px-4 py-3 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-2">
+          <div className="flex items-center gap-2.5">
+            <UserButton />
+            <div>
+              <p className="text-[13px] font-medium text-zinc-800 dark:text-zinc-200">
+                {dbUser.name ?? "Admin"}
+              </p>
+              <p className="text-[11px] text-zinc-400">Administrator</p>
+            </div>
           </div>
+          <SignOutButton redirectUrl="/">
+            <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+              <i className="ti ti-logout text-base" aria-hidden />
+              Sign out
+            </button>
+          </SignOutButton>
         </div>
       </aside>
 
@@ -281,9 +290,8 @@ export default async function AdminPage() {
             )}
           </section>
 
-          {/* Students + Results side by side */}
+          {/* Students + Results */}
           <div className="grid grid-cols-2 gap-6">
-            {/* Students */}
             <section
               id="students"
               className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5"
@@ -318,7 +326,6 @@ export default async function AdminPage() {
               )}
             </section>
 
-            {/* Results */}
             <section
               id="results"
               className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5"

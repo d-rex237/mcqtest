@@ -8,17 +8,18 @@ export default async function Home() {
   const clerkUser = await currentUser();
 
   if (clerkUser) {
-    const adminEmail = process.env.ADMIN_EMAIL;
     const userEmail = clerkUser.emailAddresses[0]?.emailAddress;
+    const adminEmails =
+      process.env.ADMIN_EMAILS?.split(",").map((e) => e.trim()) ?? [];
+    const isAdmin = adminEmails.includes(userEmail ?? "");
 
-    if (userEmail === adminEmail) {
-      // Ensure they have ADMIN role in DB
+    if (isAdmin) {
       await prisma.user.upsert({
         where: { clerkId: clerkUser.id },
         update: { role: "ADMIN" },
         create: {
           clerkId: clerkUser.id,
-          email: userEmail,
+          email: userEmail ?? "",
           name: clerkUser.fullName ?? clerkUser.username ?? "Admin",
           role: "ADMIN",
         },
@@ -26,7 +27,6 @@ export default async function Home() {
       redirect("/admin");
     }
 
-    // Everyone else → ensure they exist in DB as STUDENT
     await prisma.user.upsert({
       where: { clerkId: clerkUser.id },
       update: {},

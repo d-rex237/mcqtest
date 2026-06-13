@@ -1,9 +1,10 @@
-// app/dashboard/student/page.tsx
+// app/students/page.tsx
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
+import { SignOutButton } from "@clerk/nextjs";
 
 async function getStudentData(clerkId: string) {
   const student = await prisma.user.findUnique({
@@ -14,7 +15,6 @@ async function getStudentData(clerkId: string) {
   if (!student || student.role !== "STUDENT") return null;
 
   const [submissions, availableExams] = await Promise.all([
-    // Past submissions with exam info
     prisma.submission.findMany({
       where: { studentId: student.id },
       orderBy: { submittedAt: "desc" },
@@ -24,7 +24,6 @@ async function getStudentData(clerkId: string) {
       },
     }),
 
-    // Published exams the student hasn't submitted yet
     prisma.exam.findMany({
       where: {
         status: "PUBLISHED",
@@ -67,20 +66,11 @@ export default async function StudentDashboard() {
 
         <nav className="flex flex-col gap-0.5 p-3 flex-1">
           {[
-            {
-              label: "Dashboard",
-              href: "/dashboard/student",
-              icon: "layout-dashboard",
-            },
+            { label: "Dashboard", href: "/students", icon: "layout-dashboard" },
             {
               label: "Available exams",
-              href: "/dashboard/student/exams",
+              href: "/students/exams",
               icon: "file-description",
-            },
-            {
-              label: "My results",
-              href: "/dashboard/student/results",
-              icon: "clock-history",
             },
           ].map(({ label, href, icon }) => (
             <Link
@@ -94,13 +84,23 @@ export default async function StudentDashboard() {
           ))}
         </nav>
 
-        <div className="px-4 py-3 border-t border-zinc-200 dark:border-zinc-800 flex items-center gap-2.5">
-          <div>
-            <p className="text-[13px] font-medium text-zinc-800 dark:text-zinc-200">
-              {student.name ?? "Student"}
-            </p>
-            <p className="text-[11px] text-zinc-400">Student</p>
+        {/* Sidebar footer */}
+        <div className="px-4 py-3 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-2">
+          <div className="flex items-center gap-2.5">
+            <UserButton />
+            <div>
+              <p className="text-[13px] font-medium text-zinc-800 dark:text-zinc-200">
+                {student.name ?? "Student"}
+              </p>
+              <p className="text-[11px] text-zinc-400">Student</p>
+            </div>
           </div>
+          <SignOutButton redirectUrl="/">
+            <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+              <i className="ti ti-logout text-base" aria-hidden />
+              Sign out
+            </button>
+          </SignOutButton>
         </div>
       </aside>
 
@@ -156,12 +156,6 @@ export default async function StudentDashboard() {
               <h2 className="text-[13.5px] font-medium text-zinc-900 dark:text-white">
                 Available exams
               </h2>
-              <Link
-                href="/dashboard/student/exams"
-                className="text-xs text-indigo-500 hover:text-indigo-400"
-              >
-                See all
-              </Link>
             </div>
 
             {availableExams.length === 0 ? (
@@ -205,12 +199,6 @@ export default async function StudentDashboard() {
               <h2 className="text-[13.5px] font-medium text-zinc-900 dark:text-white">
                 Recent results
               </h2>
-              <Link
-                href="/dashboard/student/results"
-                className="text-xs text-indigo-500 hover:text-indigo-400"
-              >
-                See all
-              </Link>
             </div>
 
             {submissions.length === 0 ? (
@@ -221,8 +209,10 @@ export default async function StudentDashboard() {
               <div className="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-800">
                 {submissions.map((sub) => {
                   const passed =
-                    sub.percentage >=
-                    (sub.exam.passingMarks / sub.exam.totalMarks) * 100;
+                    sub.exam.totalMarks > 0
+                      ? sub.percentage >=
+                        (sub.exam.passingMarks / sub.exam.totalMarks) * 100
+                      : sub.percentage >= 50;
 
                   return (
                     <div
@@ -233,7 +223,6 @@ export default async function StudentDashboard() {
                         {sub.exam.title}
                       </span>
                       <div className="flex items-center gap-3">
-                        {/* Score bar */}
                         <div className="w-20 h-1 bg-zinc-200 dark:bg-zinc-700 rounded-full">
                           <div
                             className="h-1 rounded-full bg-indigo-500"
