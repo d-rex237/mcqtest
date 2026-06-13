@@ -10,7 +10,7 @@ export default async function Home() {
   if (clerkUser) {
     const userEmail = clerkUser.emailAddresses[0]?.emailAddress;
     const adminEmails =
-      process.env.ADMIN_EMAILS?.split(",").map((e) => e.trim()) ?? [];
+      process.env.ADMIN_EMAIL?.split(",").map((e) => e.trim()) ?? [];
     const isAdmin = adminEmails.includes(userEmail ?? "");
 
     if (isAdmin) {
@@ -47,7 +47,7 @@ export default async function Home() {
         <span className="text-lg font-semibold tracking-tight text-white">
           MCQ<span className="text-indigo-400">Test</span>
         </span>
-        <SignInButton>
+        <SignInButton mode="modal">
           <button className="text-sm text-zinc-400 hover:text-white transition-colors">
             Sign in
           </button>
@@ -69,7 +69,7 @@ export default async function Home() {
           no friction.
         </p>
 
-        <SignUpButton>
+        <SignUpButton mode="modal">
           <button className="bg-indigo-500 hover:bg-indigo-400 transition-colors text-white font-medium px-8 py-3 rounded-lg text-base">
             Get started free
           </button>
