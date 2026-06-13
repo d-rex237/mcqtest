@@ -1,0 +1,127 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  STUDENT
+}
+
+enum ExamStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+model User {
+  id           String       @id @default(cuid())
+  clerkId      String       @unique
+  email        String       @unique
+  name         String?
+  role         UserRole     @default(STUDENT)
+
+  examsCreated Exam[]       @relation("ExamCreator")
+  submissions  Submission[]
+
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model Exam {
+  id           String       @id @default(cuid())
+  title        String
+  description  String?
+  status       ExamStatus   @default(DRAFT)
+
+  creatorId    String
+  creator      User         @relation("ExamCreator", fields: [creatorId], references: [id])
+
+  questions    Question[]
+  submissions  Submission[]
+
+  totalMarks   Int          @default(0)
+  passingMarks Int          @default(0)
+  durationMins Int?
+  startTime    DateTime?
+  endTime      DateTime?
+
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model Question {
+  id           String          @id @default(cuid())
+  examId       String
+  exam         Exam            @relation(fields: [examId], references: [id], onDelete: Cascade)
+  questionText String
+  marks        Int             @default(1)
+  order        Int             @default(0)
+  options      Option[]
+  answers      StudentAnswer[]
+
+  createdAt    DateTime        @default(now())
+
+  @@index([examId, order])
+}
+
+model Option {
+  id         String          @id @default(cuid())
+  questionId String
+  question   Question        @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  optionText String
+  isCorrect  Boolean         @default(false)
+  order      Int             @default(0)
+  answers    StudentAnswer[]
+
+  @@index([questionId])
+}
+
+model Submission {
+  id          String          @id @default(cuid())
+
+  examId      String
+  exam        Exam            @relation(fields: [examId], references: [id])
+
+  studentId   String
+  student     User            @relation(fields: [studentId], references: [id])
+
+  score       Int             @default(0)
+  totalMarks  Int             @default(0)
+  percentage  Float           @default(0)
+  passed      Boolean         @default(false)  // ← was missing
+
+  submittedAt DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt       // ← was missing
+
+  answers     StudentAnswer[]
+
+  @@unique([examId, studentId])               // ← was missing: one submission per student per exam
+}
+
+model StudentAnswer {
+  id           String     @id @default(cuid())
+
+  submissionId String
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+
+  questionId   String
+  question     Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  optionId     String
+  option       Option     @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  isCorrect    Boolean    @default(false)
+
+  @@unique([submissionId, questionId])        // ← was missing: one answer per question per submission
+}
