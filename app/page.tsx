@@ -11,7 +11,11 @@ export default async function Home() {
     const userEmail = clerkUser.emailAddresses[0]?.emailAddress;
     const adminEmails =
       process.env.ADMIN_EMAIL?.split(",").map((e) => e.trim()) ?? [];
+
     const isAdmin = adminEmails.includes(userEmail ?? "");
+    console.log("[adminEmails]", adminEmails);
+    console.log("[userEmail]", userEmail);
+    console.log("[isAdmin]", isAdmin);
 
     if (isAdmin) {
       await prisma.user.upsert({
