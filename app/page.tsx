@@ -60,7 +60,8 @@ export default async function Home() {
 
       <div className="flex-1 flex flex-col items-center justify-center text-center px-6 gap-8">
         <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/20 rounded-full px-4 py-1.5 text-sm text-indigo-400">
-          Built for educators & students
+          This plate form has an Admin dashboard and a Student dashboard. Admins
+          can create exams, and students can take them.
         </div>
 
         <h1 className="text-5xl sm:text-6xl font-bold tracking-tight max-w-2xl leading-tight">
