@@ -154,7 +154,7 @@ export default async function StudentDashboard() {
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-[13.5px] font-medium text-zinc-900 dark:text-white">
-                Available exams
+                Available exams Set by the Admin
               </h2>
             </div>
 
